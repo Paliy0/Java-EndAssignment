@@ -4,7 +4,8 @@ import javafx.application.Application;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.fxml.FXMLLoader;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -14,8 +15,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
-import java.io.IOException;
-
 public class LoginScreen extends Application {
     public static void main(String[] args) {
         launch();
@@ -23,10 +22,13 @@ public class LoginScreen extends Application {
 
     @Override
     public void start(Stage stage){
+        stage.setTitle("Login");
+        stage.setHeight(250);
+        stage.setWidth(400);
 
         GridPane myGrid = new GridPane();
         myGrid.setPadding(new Insets(10, 10, 10, 10));
-        myGrid.setVgap(10); // Vertical spacing between grid items
+        myGrid.setVgap(10);
         myGrid.setHgap(8);
 
         Label userLbl = new Label("Username");
@@ -43,7 +45,7 @@ public class LoginScreen extends Application {
 
         Button loginBtn = new Button("Login");
         myGrid.add(loginBtn, 2,2);
-        loginBtn.setVisible(false);
+        loginBtn.setVisible(true);
 
         StringProperty passwordFieldProperty = passFld.textProperty();
 
@@ -51,13 +53,18 @@ public class LoginScreen extends Application {
             @Override
             public void changed(ObservableValue<? extends String> observableValue, String s, String t1) {
                 String password = passFld.getText();
-                passwordValidation(password);
+                loginBtn.setVisible(passwordValidation(password));
             }
         });
 
-        stage.setHeight(250);
-        stage.setWidth(400);
-        stage.setTitle("Login Form");
+        loginBtn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                MainWindow mainWindow = new MainWindow();
+                stage.close();
+
+            }
+        });
 
         Scene scene = new Scene(myGrid);
         stage.setScene(scene);
@@ -66,16 +73,20 @@ public class LoginScreen extends Application {
 
     private Boolean passwordValidation(String password) {
         boolean charPresent = false;
-        char[] specialChars = {'+', '-', '&', '|', '!', '(', ')', '{', '}', '[', ']', '^', '~', '*', '?', ':'};
+        boolean numPresent = false;
+        boolean sCharPresent = false;
 
         for(char c : password.toCharArray()) {
             if(Character.isDigit(c)){
-                return true;
+                charPresent = true;
             }
-            //else if (){
-
-            //}
+            else if (Character.isDigit(c)) {
+                numPresent = true;
+            }
+            else {
+                sCharPresent = true;
+            }
         }
-        return true;
+        return password.length() > 7 & charPresent & numPresent & sCharPresent;
     }
 }
