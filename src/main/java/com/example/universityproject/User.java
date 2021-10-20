@@ -1,40 +1,39 @@
 package com.example.universityproject;
 
 import java.io.Serializable;
-import java.time.LocalDate;
 
 public class User implements Serializable {
-    private String firstName;
-    private String lastName;
-    private LocalDate birthDate;
+    private String userName;
+    private String password;
+    private boolean admin;
 
-    public User(String firstName, String lastName, LocalDate birthDate) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.birthDate = birthDate;
+    public User(String userName, String password, boolean admin) {
+        this.userName = userName;
+        this.password = password;
+        this.admin = admin;
     }
 
-    public String getFirstName() {
-        return firstName;
+    public String getUserName() {
+        return userName;
     }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
-    public String getLastName() {
-        return lastName;
+    public String getPassword() {
+        return password;
     }
 
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
-    public LocalDate getBirthDate() {
-        return birthDate;
+    public boolean isAdmin() {
+        return admin;
     }
 
-    public void setBirthDate(LocalDate birthDate) {
-        this.birthDate = birthDate;
+    public void setAdmin(boolean admin) {
+        this.admin = admin;
     }
 }
