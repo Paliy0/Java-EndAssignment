@@ -2,16 +2,17 @@ package com.example.universityproject;
 
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 public class Movie implements Serializable {
     private String title;
     private Integer seats;
     private Double price;
-    private SimpleDateFormat startDate;
-    private SimpleDateFormat endDate;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
 
-    public Movie(String title, int seats, double price, SimpleDateFormat startDate, SimpleDateFormat endDate) {
+    public Movie(String title, int seats, double price, LocalDateTime startDate, LocalDateTime endDate) {
         this.title = title;
         this.seats = seats;
         this.price = price;
@@ -43,19 +44,19 @@ public class Movie implements Serializable {
         this.price = price;
     }
 
-    public SimpleDateFormat getStartDate() {
+    public LocalDateTime getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(SimpleDateFormat startDate) {
+    public void setStartDate(LocalDateTime startDate) {
         this.startDate = startDate;
     }
 
-    public SimpleDateFormat getEndDate() {
+    public LocalDateTime getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(SimpleDateFormat endDate) {
+    public void setEndDate(LocalDateTime endDate) {
         this.endDate = endDate;
     }
 }

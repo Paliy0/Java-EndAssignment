@@ -67,12 +67,7 @@ public class LoginScreen extends Application {
         passwordFieldProperty.addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observableValue, String s, String t1) {
-                if (PasswordValidation(passFld.getText())){
-                    loginBtn.setVisible(true);
-                }
-                else {
-                    loginBtn.setVisible(false);
-                }
+                loginBtn.setVisible(PasswordValidation(passFld.getText()));
             }
         });
 

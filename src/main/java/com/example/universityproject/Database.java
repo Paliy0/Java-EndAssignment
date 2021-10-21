@@ -1,6 +1,7 @@
 package com.example.universityproject;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,8 +14,8 @@ public class Database {
         users.add(new User("admin", "admin123!", true));
         users.add(new User("john", "john123!", false));
 
-        movies.add(new Movie("No time to lie", 200, 12.00, new SimpleDateFormat("09-10-2021 20:00"), new SimpleDateFormat("09-10-2021 22:05")));
-        movies.add(new Movie("The Adams family 19", 200, 9.00, new SimpleDateFormat("09-10-2021 22:30"), new SimpleDateFormat("09-10-2021 00:02")));
+        movies.add(new Movie("No time to lie", 200, 12.00, LocalDateTime.now(), LocalDateTime.now()));
+        movies.add(new Movie("The Adams family 19", 200, 9.00, LocalDateTime.now(), LocalDateTime.now()));
     }
 
     public List<User> getUsers() {

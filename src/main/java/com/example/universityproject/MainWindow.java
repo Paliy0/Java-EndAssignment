@@ -2,14 +2,19 @@ package com.example.universityproject;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
+
+import java.text.SimpleDateFormat;
 
 public class MainWindow {
 
@@ -21,8 +26,10 @@ public class MainWindow {
         stage.setWidth(1024);
         stage.setHeight(800);
 
-        BorderPane container = new BorderPane();
-
+        GridPane myGrid = new GridPane();
+        myGrid.setPadding(new Insets(10, 10, 10, 10));
+        myGrid.setVgap(10);
+        myGrid.setHgap(8);
 
         MenuBar menuBar = new MenuBar();
         Menu menuAdmin = new Menu("Admin");
@@ -35,51 +42,57 @@ public class MainWindow {
             userType = "admin";
         }
 
+        Text purchaseTxt = new Text("Purchase Tickets");
+        purchaseTxt.setStyle("-fx-font-size: 18px;");
+
         Label userLbl = new Label(String.format("Logged in as: %s (%s)  ", currentUser.getUserName(), userType));
-        Label purchaseLbl = new Label("Purchase tickets");
-
-
-        TableView<Movie> leftPanel = new TableView<>();
-        leftPanel.setPlaceholder(new Label("No movies to display for room 1"));
-        TableView<Movie> rightPanel = new TableView<>();
-        rightPanel.setPlaceholder(new Label("No movies to display for room 2"));
 
         ObservableList<Movie> movies = FXCollections.observableArrayList(db.getMovies());
 
-        TableColumn<Movie, String> startDateColumn = new TableColumn<>("Start");
-        startDateColumn.setCellValueFactory(new PropertyValueFactory<>("startDate"));
+        TableView<Movie> room1 = new TableView<>();
+        room1.setPlaceholder(new Label("No movies to display for room 1"));
+        TableView<Movie> room2 = new TableView<>();
+        room2.setPlaceholder(new Label("No movies to display for room 2"));
 
-        TableColumn<Movie, String> endDateColumn = new TableColumn<>("End");
-        endDateColumn.setCellValueFactory(new PropertyValueFactory<>("endDate"));
-
+        TableColumn<Movie, String> startColumn = new TableColumn<>("Start Date");
+        startColumn.setCellValueFactory(new PropertyValueFactory<>("startDate"));
+        room1.getColumns().add(startColumn);
+        TableColumn<Movie, String> endColumn = new TableColumn<>("End Date");
+        endColumn.setCellValueFactory(new PropertyValueFactory<>("endDate"));
+        room1.getColumns().add(endColumn);
         TableColumn<Movie, String> titleColumn = new TableColumn<>("Title");
         titleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
-
+        room1.getColumns().add(titleColumn);
         TableColumn<Movie, String> seatsColumn = new TableColumn<>("Seats");
         seatsColumn.setCellValueFactory(new PropertyValueFactory<>("seats"));
-
+        room1.getColumns().add(seatsColumn);
         TableColumn<Movie, String> priceColumn = new TableColumn<>("Price");
         priceColumn.setCellValueFactory(new PropertyValueFactory<>("price"));
+        room1.getColumns().add(priceColumn);
 
-        leftPanel.getColumns().addAll(startDateColumn, endDateColumn, titleColumn, seatsColumn, priceColumn);
-        leftPanel.getItems().addAll(movies);
+        // Load objects into table
+        for (Movie mov : movies){
+            room1.getItems().add(mov);
+        }
 
-        VBox room1 = new VBox(leftPanel);
-        VBox room2 = new VBox(rightPanel);
+        VBox leftPanel = new VBox();
+        leftPanel.getChildren().add(room1);
+        myGrid.add(leftPanel, 0,4);
+        leftPanel.setPrefWidth(500);
 
-        room1.getChildren().addAll(leftPanel);
-        room2.getChildren().add(rightPanel);
+        VBox rightPanel = new VBox();
+        rightPanel.getChildren().add(room2);
+        myGrid.add(rightPanel, 8,4);
 
-        container.setTop(menuBar);
-        container.setRight(userLbl);
-        container.setTop(purchaseLbl);
-        BorderPane.setAlignment(purchaseLbl, Pos.TOP_LEFT);
-        container.setCenter(room1);
-        BorderPane.setAlignment(room1, Pos.CENTER_LEFT);
-        //container.setCenter(room2);
-        //BorderPane.setAlignment(room2, Pos.CENTER_RIGHT);
+        HBox topBar = new HBox();
+        topBar.getChildren().add(menuBar);
+        myGrid.add(topBar, 0,0);
 
-        stage.setScene(new Scene(container));
+        myGrid.add(userLbl, 20,0);
+        myGrid.add(purchaseTxt, 0, 2);
+
+
+        stage.setScene(new Scene(myGrid));
         stage.show();
     }
 
