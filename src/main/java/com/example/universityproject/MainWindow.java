@@ -14,7 +14,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
-import java.text.SimpleDateFormat;
 
 public class MainWindow {
 
@@ -45,7 +44,7 @@ public class MainWindow {
         Text purchaseTxt = new Text("Purchase Tickets");
         purchaseTxt.setStyle("-fx-font-size: 18px;");
 
-        Label userLbl = new Label(String.format("Logged in as: %s (%s)  ", currentUser.getUserName(), userType));
+        Label userLbl = new Label(String.format("Logged in as: %s (%s)", currentUser.getUserName(), userType));
 
         ObservableList<Movie> movies = FXCollections.observableArrayList(db.getMovies());
 
@@ -53,6 +52,8 @@ public class MainWindow {
         room1.setPlaceholder(new Label("No movies to display for room 1"));
         TableView<Movie> room2 = new TableView<>();
         room2.setPlaceholder(new Label("No movies to display for room 2"));
+
+        
 
         TableColumn<Movie, String> startColumn = new TableColumn<>("Start Date");
         startColumn.setCellValueFactory(new PropertyValueFactory<>("startDate"));
@@ -82,13 +83,13 @@ public class MainWindow {
 
         VBox rightPanel = new VBox();
         rightPanel.getChildren().add(room2);
-        myGrid.add(rightPanel, 8,4);
+        myGrid.add(rightPanel, 10,4);
 
         HBox topBar = new HBox();
         topBar.getChildren().add(menuBar);
         myGrid.add(topBar, 0,0);
 
-        myGrid.add(userLbl, 20,0);
+        myGrid.add(userLbl, 11,0);
         myGrid.add(purchaseTxt, 0, 2);
 
 
