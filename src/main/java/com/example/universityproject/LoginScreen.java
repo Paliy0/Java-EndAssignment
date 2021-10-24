@@ -21,7 +21,6 @@ public class LoginScreen extends Application {
     public static void main(String[] args) {
         launch();
     }
-
     private Database db = new Database();
 
     @Override
@@ -112,10 +111,7 @@ public class LoginScreen extends Application {
             }
         }
 
-        if(password.length() > 7 && charPresent && numPresent && sCharPresent) {
-            return true;
-        }
-        return false;
+        return password.length() > 7 && charPresent && numPresent && sCharPresent;
     }
 
     private User validateUser(String username, String password) {
