@@ -183,6 +183,7 @@ public class MainWindow {
         TextField timePicker = new TextField();
         //column 6
         Button addBtn = new Button("Add showing");
+        Button clearButton = new Button("Clear");
 
         //controls
         VBox leftPanel = new VBox();
@@ -232,7 +233,7 @@ public class MainWindow {
         col5.getChildren().addAll(timePicker);
         VBox col6 = new VBox(10);
         //col6.setPadding(new Insets(15, 15, 15, 15));
-        col6.getChildren().addAll(addBtn, clearBtn);
+        col6.getChildren().addAll(addBtn, clearButton);
         manageBar.getChildren().addAll(col1, col2, col3, col4, col5, col6);
 
         myGrid.add(manageBar, 0, 6);
@@ -351,24 +352,25 @@ public class MainWindow {
         clearBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                if(botBar.isVisible()){
-                    room.setText("");
-                    start.setText("");
-                    end.setText("");
-                    title.setText("");
-                    seatSpinner.getEditor().clear();
-                    name.clear();
-                }
-                else{
-                    comboMovies.getSelectionModel().clearSelection();
-                    comboRoom.getSelectionModel().clearSelection();
-                    seats.setText("");
-                    datePicker.getEditor().clear();
-                    endDate.setText("");
-                    timePicker.clear();
-                    price.setText("");
-                }
+                room.setText("");
+                start.setText("");
+                end.setText("");
+                title.setText("");
+                seatSpinner.getEditor().clear();
+                name.clear();
+            }
+        });
 
+        clearButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                comboMovies.getSelectionModel().clearSelection();
+                comboRoom.getSelectionModel().clearSelection();
+                seats.setText("");
+                datePicker.getEditor().clear();
+                endDate.setText("");
+                timePicker.clear();
+                price.setText("");
             }
         });
 
