@@ -232,7 +232,7 @@ public class MainWindow {
         col5.getChildren().addAll(timePicker);
         VBox col6 = new VBox(10);
         //col6.setPadding(new Insets(15, 15, 15, 15));
-        col6.getChildren().addAll(addBtn);
+        col6.getChildren().addAll(addBtn, clearBtn);
         manageBar.getChildren().addAll(col1, col2, col3, col4, col5, col6);
 
         myGrid.add(manageBar, 0, 6);
@@ -360,7 +360,13 @@ public class MainWindow {
                     name.clear();
                 }
                 else{
-                    //clear managemovies hbox controls
+                    comboMovies.getSelectionModel().clearSelection();
+                    comboRoom.getSelectionModel().clearSelection();
+                    seats.setText("");
+                    datePicker.getEditor().clear();
+                    endDate.setText("");
+                    timePicker.clear();
+                    price.setText("");
                 }
 
             }
