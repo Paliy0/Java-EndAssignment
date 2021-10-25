@@ -21,10 +21,11 @@ public class LoginScreen extends Application {
     public static void main(String[] args) {
         launch();
     }
-    private Database db = new Database();
+    private Database newDatabase = new Database();
 
     @Override
     public void start(Stage stage){
+
         stage.setTitle("Login");
         stage.setHeight(250);
         stage.setWidth(400);
@@ -76,7 +77,7 @@ public class LoginScreen extends Application {
                 if (!userFld.getText().isEmpty() && !passFld.getText().isEmpty()){
                     User user = validateUser(userFld.getText(), passFld.getText());
                     if (user != null){
-                        MainWindow mainWindow = new MainWindow(user);
+                        MainWindow mainWindow = new MainWindow(user, newDatabase);
                         stage.close();
                     }
                 }
@@ -115,7 +116,7 @@ public class LoginScreen extends Application {
     }
 
     private User validateUser(String username, String password) {
-        for (User user : db.getUsers()) {
+        for (User user : newDatabase.getUsers()) {
             if (user.getUserName().equals(username) && user.getPassword().equals(password)) {
                 return user;
             }

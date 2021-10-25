@@ -18,16 +18,15 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.util.ArrayList;
-
+import java.util.Optional;
 
 public class MainWindow {
 
-    private Database db = new Database();
-
-    public MainWindow(User currentUser) {
+    public MainWindow(User currentUser, Database db) {
         Stage stage = new Stage();
         stage.setTitle("Cinema App");
         stage.setWidth(1024);
@@ -40,17 +39,17 @@ public class MainWindow {
 
         MenuBar menuBar = new MenuBar();
         Menu menuAdmin = new Menu("Admin");
+        MenuItem purchaseTickets = new MenuItem("Purchase tickets");
+        purchaseTickets.setVisible(false);
+        MenuItem manageShowings = new MenuItem("Manage showings");
+        manageShowings.setVisible(currentUser.isAdmin());
+        menuAdmin.getItems().addAll(purchaseTickets, manageShowings);
+        //add manage movies
         Menu menuHelp = new Menu("Help");
         Menu menuLogout = new Menu("Logout");
+        MenuItem Logout = new MenuItem("Log out");
+        menuLogout.getItems().add(Logout);
         menuBar.getMenus().addAll(menuAdmin, menuHelp, menuLogout);
-
-        menuLogout.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent actionEvent) {
-                LoginScreen login = new LoginScreen();
-                stage.close();
-            }
-        });
 
         String userType = "user";
         if (currentUser.isAdmin()){
@@ -67,8 +66,11 @@ public class MainWindow {
 
         TableView<Movie> room1 = new TableView<>();
         room1.setPlaceholder(new Label("No movies to display for room 1"));
+        room1.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+
         TableView<Movie> room2 = new TableView<>();
         room2.setPlaceholder(new Label("No movies to display for room 2"));
+        room2.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 
         TableColumn<Movie, String> startColumn = new TableColumn<>("Start Date");
         startColumn.setCellValueFactory(new PropertyValueFactory<>("startDate"));
@@ -102,15 +104,15 @@ public class MainWindow {
         priceColumn2.setCellValueFactory(new PropertyValueFactory<>("price"));
         room2.getColumns().add(priceColumn2);
 
-        // Load objects into table
+        // Load objects in room
         for (Movie mov : moviesRoom1){
             room1.getItems().add(mov);
         }
-
         for (Movie mov : moviesRoom2){
             room2.getItems().add(mov);
         }
 
+        //Botbar Controls
         //column 1
         Label roomLbl = new Label("Room");
         roomLbl.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
@@ -118,31 +120,71 @@ public class MainWindow {
         startLbl.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
         Label endLbl = new Label("End");
         endLbl.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
-
         //column 2
         Label room = new Label("");
         Label start = new Label("");
         Label end = new Label("");
-
         //column 3
         Label titleLbl = new Label("Movie Title");
         titleLbl.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
-        Label seatsLbl = new Label("Nº of seats");
+        Label seatsLbl = new Label("Nº of tickets");
         seatsLbl.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
         Label nameLbl = new Label("Name");
         nameLbl.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
-
         //column 4
-        Label title = new Label("Movie Title");
-        Spinner<Integer> seats = new Spinner<>();
+        Label title = new Label("");
+        Spinner<Integer> seatSpinner = new Spinner<>();
         SpinnerValueFactory<Integer> valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 200);
-        seats.setValueFactory(valueFactory);
+        seatSpinner.setValueFactory(valueFactory);
         TextField name = new TextField();
-
         //column 5
         Button purchaseBtn = new Button("Purchase");
         Button clearBtn = new Button("Clear");
 
+        //ManageBar Controls
+        //column 1
+        Label movieTitle = new Label("Movie title");
+        movieTitle.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
+        Label movieRoom = new Label("Room");
+        movieRoom.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
+        Label movieSeats = new Label("Nº of seats");
+        movieSeats.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
+        //column 2
+        ComboBox comboMovies = new ComboBox();
+        for(Movie movie : moviesRoom1){
+            comboMovies.getItems().add(movie.getTitle());
+        }
+        ComboBox comboRoom = new ComboBox();
+        comboRoom.getItems().add("Room 1");
+        comboRoom.getItems().add("Room 2");
+        Label seats = new Label("");
+        comboRoom.setOnAction((event) -> {
+            if(comboRoom.getSelectionModel().getSelectedIndex() == 1){
+                seats.setText("100");
+            }
+            else {
+                seats.setText("200");
+            }
+
+        });
+
+        //column 3
+        Label movieStart = new Label("Start");
+        movieStart.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
+        Label movieEnd = new Label("End");
+        movieEnd.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
+        Label moviePrice = new Label("Name");
+        moviePrice.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
+        //column 4
+        DatePicker datePicker = new DatePicker();
+        Label endDate = new Label();
+        Label price = new Label("Price");
+        //column 5
+        TextField timePicker = new TextField();
+        //column 6
+        Button addBtn = new Button("Add showing");
+
+        //controls
         VBox leftPanel = new VBox();
         leftPanel.getChildren().add(room1);
         leftPanel.setPrefWidth(600);
@@ -153,8 +195,7 @@ public class MainWindow {
         rightPanel.setPrefWidth(600);
         myGrid.add(rightPanel, 10,4);
 
-        HBox topBar = new HBox();
-        topBar.getChildren().add(menuBar);
+        HBox topBar = new HBox(100, menuBar, userLbl);
         myGrid.add(topBar, 0,0);
 
         HBox botBar = new HBox(10);
@@ -166,39 +207,162 @@ public class MainWindow {
         VBox column3 = new VBox(10);
         column3.getChildren().addAll(titleLbl, seatsLbl, nameLbl);
         VBox column4 = new VBox(10);
-        column4.getChildren().addAll(title, seats, name);
+        column4.getChildren().addAll(title, seatSpinner, name);
         VBox column5 = new VBox(15);
         column5.getChildren().addAll(purchaseBtn, clearBtn);
-
         botBar.getChildren().addAll(column1, column2, column3, column4, column5);
-        myGrid.add(botBar, 0,6);
-        myGrid.add(userLbl, 9,0);
-        myGrid.add(purchaseTxt, 0, 2);
 
+
+        HBox manageBar = new HBox();
+        manageBar.setVisible(false);
+        VBox col1 = new VBox(10);
+        col1.setPadding(new Insets(15, 15, 15, 15));
+        col1.getChildren().addAll(movieTitle, movieRoom, movieSeats);
+        VBox col2 = new VBox(10);
+        col2.setPadding(new Insets(15, 15, 15, 15));
+        col2.getChildren().addAll(comboMovies, comboRoom, seats);
+        VBox col3 = new VBox(10);
+        col3.setPadding(new Insets(15, 15, 15, 15));
+        col3.getChildren().addAll(movieStart, movieEnd, moviePrice);
+        VBox col4 = new VBox(10);
+        //col4.setPadding(new Insets(15, 15, 15, 15));
+        col4.getChildren().addAll(datePicker, endDate, price);
+        VBox col5 = new VBox(10);
+        //col5.setPadding(new Insets(15, 15, 15, 15));
+        col5.getChildren().addAll(timePicker);
+        VBox col6 = new VBox(10);
+        //col6.setPadding(new Insets(15, 15, 15, 15));
+        col6.getChildren().addAll(addBtn);
+        manageBar.getChildren().addAll(col1, col2, col3, col4, col5, col6);
+
+        myGrid.add(manageBar, 0, 6);
+        myGrid.add(botBar, 0,6);
+        myGrid.add(purchaseTxt, 0, 2);
         stage.setScene(new Scene(myGrid));
         stage.show();
+
+        purchaseTickets.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                manageBar.setVisible(false);
+                botBar.setVisible(true);
+                purchaseTickets.setVisible(false);
+                manageShowings.setVisible(true);
+                purchaseTxt.setText("Purchase Tickets");
+            }
+        });
+        manageShowings.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                manageBar.setVisible(true);
+                botBar.setVisible(false);
+                purchaseTickets.setVisible(true);
+                manageShowings.setVisible(false);
+                purchaseTxt.setText("Manage Showings");
+            }
+        });
+
+        Logout.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Warning");
+                alert.setHeaderText("Are you sure you wish to logout?");
+                Optional<ButtonType> result = alert.showAndWait();
+                if (result.get() == ButtonType.OK){
+                    new LoginScreen().start(new Stage());
+                    stage.close();
+                }
+            }
+        });
 
         purchaseBtn.setOnAction(new EventHandler<ActionEvent>(){
             @Override
             public void handle(ActionEvent actionEvent){
-                /*
-                if (room1.getSelectionModel().getSelectedItem().getSeats() > 0 && room2.getSelectionModel().getSelectedItem().getSeats() <= moviesRoom1  && !name.getText().isEmpty()){
+                if (seatSpinner.getValue() > 0 && !name.getText().isEmpty()){
+                    if (room1.getSelectionModel().getSelectedIndex() != -1){
+                        Movie selectedMovie = room1.getSelectionModel().getSelectedItem();
 
+                        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                        alert.setTitle("Confirmation");
+                        alert.setHeaderText("Do you wish to purchase " + seatSpinner.getValue() + " tickets?");
+                        Optional<ButtonType> result = alert.showAndWait();
+                        if (result.get() == ButtonType.OK) {
+                            Integer seatsLeft = selectedMovie.getSeats() - seatSpinner.getValue();
+                            if (seatsLeft >= 0){
+                                selectedMovie.setSeats(selectedMovie.getSeats() - seatSpinner.getValue());
+                            }
+                            else {
+                                Alert alert1 = new Alert(Alert.AlertType.ERROR);
+                                alert1.setTitle("ERROR");
+                                alert1.setHeaderText("Tickets not available");
+                                alert1.showAndWait();
+                            }
+                        }
+                        else {
+                            Alert alert1 = new Alert(Alert.AlertType.INFORMATION);
+                            alert1.setTitle("INFORMATION");
+                            alert1.setHeaderText("Purchase cancelled by user");
+                            alert1.showAndWait();
+                        }
+                        room1.refresh();
+                        room1.getSelectionModel().clearSelection();
+                    }
+                    else if (room2.getSelectionModel().getSelectedIndex() != -1){
+                        Movie selectedMovie = room2.getSelectionModel().getSelectedItem();
+
+                        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                        alert.setTitle("Confirmation");
+                        alert.setHeaderText("Do you wish to purchase " + seatSpinner.getValue() + " tickets?");
+                        //alert.showAndWait();
+                        Optional<ButtonType> result = alert.showAndWait();
+                        if (result.get() == ButtonType.OK) {
+                            Integer seatsLeft = selectedMovie.getSeats() - seatSpinner.getValue();
+                            if (seatsLeft >= 0){
+                                selectedMovie.setSeats(selectedMovie.getSeats() - seatSpinner.getValue());
+                            }
+                            else {
+                                Alert alert1 = new Alert(Alert.AlertType.ERROR);
+                                alert1.setTitle("ERROR");
+                                alert1.setHeaderText("Tickets not available");
+                                alert1.showAndWait();
+                            }
+                        }
+                        else {
+                            Alert alert1 = new Alert(Alert.AlertType.INFORMATION);
+                            alert1.setTitle("INFORMATION");
+                            alert1.setHeaderText("Purchase cancelled by user");
+                            alert1.showAndWait();
+                        }
+                        room2.refresh();
+                        room2.getSelectionModel().clearSelection();
+                    }
                 }
+            }
+        });
 
-                 */
+        addBtn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                //comboMovies.getSelectionModel().getSelectedItem();
             }
         });
 
         clearBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                room.setText("");
-                start.setText("");
-                end.setText("");
-                title.setText("");
-                seats.getEditor().clear();
-                name.clear();
+                if(botBar.isVisible()){
+                    room.setText("");
+                    start.setText("");
+                    end.setText("");
+                    title.setText("");
+                    seatSpinner.getEditor().clear();
+                    name.clear();
+                }
+                else{
+                    //clear managemovies hbox controls
+                }
+
             }
         });
 
