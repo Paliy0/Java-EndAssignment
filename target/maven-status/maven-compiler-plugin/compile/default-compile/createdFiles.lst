@@ -6,6 +6,7 @@ com\example\universityproject\MainWindow$7.class
 com\example\universityproject\Movie.class
 com\example\universityproject\LoginScreen$1.class
 com\example\universityproject\Database.class
+com\example\universityproject\App.class
 com\example\universityproject\MainWindow$2.class
 com\example\universityproject\MainWindow$3.class
 com\example\universityproject\MainWindow.class
@@ -13,4 +14,5 @@ com\example\universityproject\MainWindow$8.class
 com\example\universityproject\User.class
 com\example\universityproject\MainWindow$4.class
 com\example\universityproject\MainWindow$1.class
+com\example\universityproject\Showing.class
 com\example\universityproject\MainWindow$9.class

@@ -1,23 +1,14 @@
 package com.example.universityproject;
 
-import java.io.Serializable;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.util.Date;
+public class Movie {
+    public String title;
+    public int duration;
+    public double price;
 
-public class Movie implements Serializable {
-    private String title;
-    private Integer seats;
-    private Double price;
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
-
-    public Movie(String title, int seats, double price, LocalDateTime startDate, LocalDateTime endDate) {
+    public Movie(String title, int duration, double price) {
         this.title = title;
-        this.seats = seats;
+        this.duration = duration;
         this.price = price;
-        this.startDate = startDate;
-        this.endDate = endDate;
     }
 
     public String getTitle() {
@@ -28,35 +19,19 @@ public class Movie implements Serializable {
         this.title = title;
     }
 
-    public Integer getSeats() {
-        return seats;
+    public int getDuration() {
+        return duration;
     }
 
-    public void setSeats(Integer seats) {
-        this.seats = seats;
+    public void setDuration(int duration) {
+        this.duration = duration;
     }
 
-    public Double getPrice() {
+    public double getPrice() {
         return price;
     }
 
-    public void setPrice(Double price) {
+    public void setPrice(double price) {
         this.price = price;
-    }
-
-    public LocalDateTime getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(LocalDateTime startDate) {
-        this.startDate = startDate;
-    }
-
-    public LocalDateTime getEndDate() {
-        return endDate;
-    }
-
-    public void setEndDate(LocalDateTime endDate) {
-        this.endDate = endDate;
     }
 }

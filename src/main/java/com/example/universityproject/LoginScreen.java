@@ -1,31 +1,24 @@
 package com.example.universityproject;
 
 import javafx.animation.PauseTransition;
-import javafx.application.Application;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-public class LoginScreen extends Application {
-    public static void main(String[] args) {
-        launch();
-    }
-    private Database newDatabase = new Database();
 
-    @Override
-    public void start(Stage stage){
+public class LoginScreen {
 
+    public LoginScreen(Database db) {
+        Stage stage = new Stage();
         stage.setTitle("Login");
         stage.setHeight(250);
         stage.setWidth(400);
@@ -67,7 +60,7 @@ public class LoginScreen extends Application {
         passwordFieldProperty.addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observableValue, String s, String t1) {
-                loginBtn.setVisible(PasswordValidation(passFld.getText()));
+                loginBtn.setVisible(db.PasswordValidation(passFld.getText()));
             }
         });
 
@@ -75,9 +68,9 @@ public class LoginScreen extends Application {
             @Override
             public void handle(ActionEvent actionEvent) {
                 if (!userFld.getText().isEmpty() && !passFld.getText().isEmpty()){
-                    User user = validateUser(userFld.getText(), passFld.getText());
+                    User user = db.validateUser(userFld.getText(), passFld.getText());
                     if (user != null){
-                        MainWindow mainWindow = new MainWindow(user, newDatabase);
+                        MainWindow mainWindow = new MainWindow(user, db);
                         stage.close();
                     }
                 }
@@ -95,32 +88,5 @@ public class LoginScreen extends Application {
         stage.show();
     }
 
-    private Boolean PasswordValidation(String password) {
-        boolean charPresent = false;
-        boolean numPresent = false;
-        boolean sCharPresent = false;
 
-        for(char c : password.toCharArray()) {
-            if(Character.isLetter(c)){
-                charPresent = true;
-            }
-            else if (Character.isDigit(c)) {
-                numPresent = true;
-            }
-            else {
-                sCharPresent = true;
-            }
-        }
-
-        return password.length() > 7 && charPresent && numPresent && sCharPresent;
-    }
-
-    private User validateUser(String username, String password) {
-        for (User user : newDatabase.getUsers()) {
-            if (user.getUserName().equals(username) && user.getPassword().equals(password)) {
-                return user;
-            }
-        }
-        return null;
-    }
 }
