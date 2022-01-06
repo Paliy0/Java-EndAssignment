@@ -16,6 +16,7 @@ public class Showing {
         this.start = start;
         this.end = end;
     }
+
     public String getMovieTitle() {return movie.getTitle(); }
 
     public String getMoviePrice() {return String.format("%.2f", movie.price); }

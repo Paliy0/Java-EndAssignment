@@ -18,6 +18,10 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Optional;
 
 public class MainWindow {
@@ -121,7 +125,6 @@ public class MainWindow {
             } else {
                 seats.setText("200");
             }
-
         });
 
         //column 3
@@ -143,13 +146,9 @@ public class MainWindow {
 
         //controls
         HBox leftPanel = new HBox(room1);
-        //leftPanel.getChildren().add(room1);
-        //leftPanel.setPrefWidth(1000);
         myGrid.add(leftPanel, 0, 4);
 
         HBox rightPanel = new HBox(room2);
-        //rightPanel.getChildren().add(room2);
-        //rightPanel.setPrefWidth(800);
         myGrid.add(rightPanel, 7, 4);
 
         HBox topBar = new HBox(100, menuBar, userLbl);
@@ -168,22 +167,16 @@ public class MainWindow {
         manageBar.setPrefWidth(3000);
         VBox col1 = new VBox(20, movieTitle, movieRoom, movieSeats);
         col1.setPrefWidth(350);
-        //col1.setPadding(new Insets(10, 10, 10, 10)); //top, right, bottom, left
         VBox col2 = new VBox(20, comboMovies, comboRoom, seats);
         col2.setPrefWidth(350);
-        //col2.setPadding(new Insets(10, 10, 10, 10));
         VBox col3 = new VBox(20, movieStart, movieEnd, moviePrice);
         col3.setPrefWidth(350);
-        //col3.setPadding(new Insets(10, 10, 10, 10));
         VBox col4 = new VBox(18, datePicker, endDate, price);
         col4.setPrefWidth(350);
-        //col4.setPadding(new Insets(50, 50, 50, 50));
         VBox col5 = new VBox(20, timePicker);
         col5.setPrefWidth(350);
-        //col5.setPadding(new Insets(15, 15, 15, 15));
         VBox col6 = new VBox(10, addBtn, clearButton);
         col6.setPrefWidth(350);
-        //col6.setPadding(new Insets(15, 15, 15, 15));
         manageBar.getChildren().addAll(col1, col2, col3, col4, col5, col6);
 
         myGrid.add(manageBar, 0, 6);
@@ -193,10 +186,6 @@ public class MainWindow {
         myGrid.add(purchaseTxt, 0, 2);
         stage.setScene(new Scene(myGrid));
         stage.show();
-
-
-
-
 
         purchaseTickets.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -296,8 +285,23 @@ public class MainWindow {
         addBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                //comboMovies.getSelectionModel().getSelectedItem();
-                //check controls
+
+                String selectedMovie = comboMovies.getSelectionModel().getSelectedItem().toString();
+                int seats = 200;
+                if(comboRoom.getSelectionModel().getSelectedItem().toString().equals("Room 2")){
+                    seats = 100;
+                }
+                LocalDate datePart = datePicker.getValue();
+                LocalTime timePart = LocalTime.parse(timePicker.getText());
+                LocalDateTime dateTime = LocalDateTime.of(datePart, timePart);
+
+                if (comboRoom.getSelectionModel().getSelectedItem().toString().equals("Room 1")){
+                    moviesRoom1.add(checkData(selectedMovie, seats, dateTime, movieList));
+                }
+                else{
+                    moviesRoom2.add(checkData(selectedMovie, seats, dateTime, movieList));
+                }
+
 
                 //get data
                 //add to list.
@@ -380,6 +384,17 @@ public class MainWindow {
         TableColumn<Showing, String> priceColumn = new TableColumn<>("Price");
         priceColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getMoviePrice()));
         room.getColumns().add(priceColumn);
+    }
+
+    private Showing checkData(String selectedMovie, int seats, LocalDateTime dateTime, ObservableList<Movie> movieList){
+        if (selectedMovie != null || seats > 0 || dateTime != null){
+            for (Movie movie : movieList){
+                if (movie.getTitle().equals(selectedMovie)){
+                    return new Showing(movie, seats, dateTime, movie.getEnd(dateTime));
+                }
+            }
+        }
+        return null;
     }
 
 }

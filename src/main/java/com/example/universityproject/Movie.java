@@ -1,5 +1,7 @@
 package com.example.universityproject;
 
+import java.time.LocalDateTime;
+
 public class Movie {
     public String title;
     public int duration;
@@ -21,6 +23,10 @@ public class Movie {
 
     public int getDuration() {
         return duration;
+    }
+
+    public LocalDateTime getEnd(LocalDateTime start){
+        return start.plusHours(duration);
     }
 
     public void setDuration(int duration) {

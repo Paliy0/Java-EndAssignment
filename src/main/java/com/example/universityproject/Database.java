@@ -7,11 +7,10 @@ import java.util.List;
 
 public class Database {
 
-    private List<User> users = new ArrayList<>();
-    private List<Showing> showingsRoom1 = new ArrayList<>();
-    private List<Showing> showingsRoom2 = new ArrayList<>();
-    private List<Movie> movieList = new ArrayList<>();
-
+    private final List<User> users = new ArrayList<>();
+    private final List<Showing> showingsRoom1 = new ArrayList<>();
+    private final List<Showing> showingsRoom2 = new ArrayList<>();
+    private final List<Movie> movieList = new ArrayList<>();
 
     public Database() {
         users.add(new User("admin", "admin123!", true));
@@ -34,9 +33,7 @@ public class Database {
         return users;
     }
 
-    public List<Showing> getRoom1() {
-        return showingsRoom1;
-    }
+    public List<Showing> getRoom1() { return showingsRoom1; }
 
     public List<Showing> getRoom2() {
         return showingsRoom2;
@@ -44,7 +41,7 @@ public class Database {
 
     public List<Movie> getMovieList() {return movieList; }
 
-    Boolean PasswordValidation(String password) {
+    boolean PasswordValidation(String password) {
         boolean charPresent = false;
         boolean numPresent = false;
         boolean sCharPresent = false;

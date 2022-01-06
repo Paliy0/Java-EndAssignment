@@ -70,7 +70,7 @@ public class LoginScreen {
                 if (!userFld.getText().isEmpty() && !passFld.getText().isEmpty()){
                     User user = db.validateUser(userFld.getText(), passFld.getText());
                     if (user != null){
-                        MainWindow mainWindow = new MainWindow(user, db);
+                        new MainWindow(user, db);
                         stage.close();
                     }
                 }

@@ -11,7 +11,7 @@ public class App extends Application {
     @Override
     public void start(Stage stage) {
         Database newDatabase = new Database();
-        LoginScreen loginScreen = new LoginScreen(newDatabase);
+        new LoginScreen(newDatabase);
         //stage.close();
     }
 }
