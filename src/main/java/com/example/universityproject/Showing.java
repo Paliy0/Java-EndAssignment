@@ -6,40 +6,29 @@ import java.time.format.DateTimeFormatter;
 
 public class Showing {
     private Movie movie;
-    private int seats;
+    private int availableSeats;
     private LocalDateTime start;
-    private LocalDateTime end;
 
-    public Showing(Movie movie, int seats, LocalDateTime start, LocalDateTime end) {
+    public Showing(Movie movie, int availableSeats, LocalDateTime start) {
         this.movie = movie;
-        this.seats = seats;
+        this.availableSeats = availableSeats;
         this.start = start;
-        this.end = end;
     }
 
     public String getMovieTitle() {return movie.getTitle(); }
 
     public String getMoviePrice() {return String.format("%.2f", movie.price); }
 
-    public int getSeats() {
-        return seats;
+    public String getAvailableSeats() {return String.format("%d", availableSeats);}
+
+    public void purchaseSeats(int amount) {
+        if (availableSeats < amount){
+            throw new IllegalArgumentException("Amount exceeded available seats");
+        }
+        availableSeats-= amount;
     }
 
-    public void setSeats(int seats) {
-        this.seats = seats;
-    }
+    public String getStart() {return start.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));}
 
-    public String getStart() {
-        return start.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
-    }
-
-    public void setStart(LocalDateTime start) {
-        this.start = start;
-    }
-
-    public String getEnd() {return end.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")); }
-
-    public void setEnd(LocalDateTime end) {
-        this.end = end;
-    }
+    public String getEnd() {return movie.getEnd(start).format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")); }
 }
