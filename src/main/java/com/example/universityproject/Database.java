@@ -1,5 +1,8 @@
 package com.example.universityproject;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;
@@ -8,9 +11,9 @@ import java.util.List;
 public class Database {
 
     private final List<User> users = new ArrayList<>();
-    private final List<Showing> showingsRoom1 = new ArrayList<>();
-    private final List<Showing> showingsRoom2 = new ArrayList<>();
-    private final List<Movie> movieList = new ArrayList<>();
+    private final ObservableList<Movie> movieList = FXCollections.observableArrayList();
+    private Room room1 = new Room(1, 200);
+    private Room room2 = new Room(2, 100);
 
     public Database() {
         users.add(new User("admin", "admin123!", true));
@@ -22,24 +25,24 @@ public class Database {
         movieList.add(movie1);
         movieList.add(movie2);
 
-        showingsRoom1.add(new Showing(movie1, 200, LocalDateTime.of(2021, Month.OCTOBER, 9, 20, 0), LocalDateTime.of(2021, Month.OCTOBER, 9, 22, 5)));
-        showingsRoom1.add(new Showing(movie2, 200, LocalDateTime.of(2021, Month.OCTOBER, 10, 22, 30), LocalDateTime.of(2021, Month.OCTOBER, 10, 0, 2)));
+        room1.addShowing(movie1, LocalDateTime.of(2021, Month.OCTOBER, 9, 20, 0));
+        room1.addShowing(movie2, LocalDateTime.of(2021, Month.OCTOBER, 10, 22, 30));
 
-        showingsRoom2.add(new Showing(movie1, 100, LocalDateTime.of(2021, Month.OCTOBER, 9, 20, 0), LocalDateTime.of(2021, Month.OCTOBER, 9, 22, 5)));
-        showingsRoom2.add(new Showing(movie2, 100, LocalDateTime.of(2021, Month.OCTOBER, 10, 22, 30), LocalDateTime.of(2021, Month.OCTOBER, 10, 0, 2)));
+        room2.addShowing(movie1, LocalDateTime.of(2021, Month.OCTOBER, 9, 20, 0));
+        room2.addShowing(movie2, LocalDateTime.of(2021, Month.OCTOBER, 10, 22, 30));
     }
 
     public List<User> getUsers() {
         return users;
     }
 
-    public List<Showing> getRoom1() { return showingsRoom1; }
+    public Room getRoom1() { return room1; }
 
-    public List<Showing> getRoom2() {
-        return showingsRoom2;
+    public Room getRoom2() {
+        return room2;
     }
 
-    public List<Movie> getMovieList() {return movieList; }
+    public ObservableList<Movie> getMovieList() { return movieList; }
 
     boolean PasswordValidation(String password) {
         boolean charPresent = false;

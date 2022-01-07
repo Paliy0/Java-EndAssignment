@@ -1,7 +1,6 @@
 package com.example.universityproject;
 
 import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -16,12 +15,10 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import javafx.util.Callback;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.Optional;
 
 public class MainWindow {
@@ -61,17 +58,17 @@ public class MainWindow {
 
         Label userLbl = new Label(String.format("Logged in as: %s (%s)", currentUser.getUserName(), userType));
 
-        ObservableList<Movie> movieList = FXCollections.observableArrayList(db.getMovieList());
-        ObservableList<Showing> moviesRoom1 = FXCollections.observableArrayList(db.getRoom1());
-        ObservableList<Showing> moviesRoom2 = FXCollections.observableArrayList(db.getRoom2());
+        ObservableList<Movie> movieList = db.getMovieList();
+        Room room1 = db.getRoom1();
+        Room room2 = db.getRoom2();
 
-        TableView<Showing> room1 = new TableView<>();
-        room1.setPlaceholder(new Label("No movies to display for room 1"));
-        addToRoom(room1, moviesRoom1);
+        TableView<Showing> tableRoom1 = new TableView<>();
+        tableRoom1.setPlaceholder(new Label("No movies to display for room 1"));
+        addToRoom(tableRoom1, room1);
 
-        TableView<Showing> room2 = new TableView<>();
-        room2.setPlaceholder(new Label("No movies to display for room 2"));
-        addToRoom(room2, moviesRoom2);
+        TableView<Showing> tableRoom2 = new TableView<>();
+        tableRoom2.setPlaceholder(new Label("No movies to display for room 2"));
+        addToRoom(tableRoom2, room2);
 
         //Botbar Controls
         //column 1
@@ -145,10 +142,10 @@ public class MainWindow {
         Button clearButton = new Button("Clear");
 
         //controls
-        HBox leftPanel = new HBox(room1);
+        HBox leftPanel = new HBox(tableRoom1);
         myGrid.add(leftPanel, 0, 4);
 
-        HBox rightPanel = new HBox(room2);
+        HBox rightPanel = new HBox(tableRoom2);
         myGrid.add(rightPanel, 7, 4);
 
         HBox topBar = new HBox(100, menuBar, userLbl);
@@ -225,60 +222,17 @@ public class MainWindow {
         purchaseBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                if (seatSpinner.getValue() > 0 && !name.getText().isEmpty()) {
-                    if (room1.getSelectionModel().getSelectedIndex() != -1) {
-                        Showing selectedShowing = room1.getSelectionModel().getSelectedItem();
-
-                        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                        alert.setTitle("Confirmation");
-                        alert.setHeaderText("Do you wish to purchase " + seatSpinner.getValue() + " tickets?");
-                        Optional<ButtonType> result = alert.showAndWait();
-                        if (result.get() == ButtonType.OK) {
-                            Integer seatsLeft = selectedShowing.getSeats() - seatSpinner.getValue();
-                            if (seatsLeft >= 0) {
-                                selectedShowing.setSeats(selectedShowing.getSeats() - seatSpinner.getValue());
-                            } else {
-                                Alert alert1 = new Alert(Alert.AlertType.ERROR);
-                                alert1.setTitle("ERROR");
-                                alert1.setHeaderText("Tickets not available");
-                                alert1.showAndWait();
-                            }
-                        } else {
-                            Alert alert1 = new Alert(Alert.AlertType.INFORMATION);
-                            alert1.setTitle("INFORMATION");
-                            alert1.setHeaderText("Purchase cancelled by user");
-                            alert1.showAndWait();
-                        }
-                        room1.refresh();
-                        room1.getSelectionModel().clearSelection();
-                    } else if (room2.getSelectionModel().getSelectedIndex() != -1) {
-                        Showing selectedShowing = room2.getSelectionModel().getSelectedItem();
-
-                        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                        alert.setTitle("Confirmation");
-                        alert.setHeaderText("Do you wish to purchase " + seatSpinner.getValue() + " tickets?");
-                        //alert.showAndWait();
-                        Optional<ButtonType> result = alert.showAndWait();
-                        if (result.get() == ButtonType.OK) {
-                            int seatsLeft = selectedShowing.getSeats() - seatSpinner.getValue();
-                            if (seatsLeft >= 0) {
-                                selectedShowing.setSeats(selectedShowing.getSeats() - seatSpinner.getValue());
-                            } else {
-                                Alert alert1 = new Alert(Alert.AlertType.ERROR);
-                                alert1.setTitle("ERROR");
-                                alert1.setHeaderText("Tickets not available");
-                                alert1.showAndWait();
-                            }
-                        } else {
-                            Alert alert1 = new Alert(Alert.AlertType.INFORMATION);
-                            alert1.setTitle("INFORMATION");
-                            alert1.setHeaderText("Purchase cancelled by user");
-                            alert1.showAndWait();
-                        }
-                        room2.refresh();
-                        room2.getSelectionModel().clearSelection();
-                    }
+                if (seatSpinner.getValue() < 0 || name.getText().isEmpty()) {
+                    return;
                 }
+
+                if (tableRoom1.getSelectionModel().getSelectedIndex() != -1) {
+                    purchaseTickets(tableRoom1, seatSpinner.getValue());
+
+                } else if (tableRoom2.getSelectionModel().getSelectedIndex() != -1) {
+                    purchaseTickets(tableRoom2, seatSpinner.getValue());
+                }
+                //if no showing is selected..
             }
         });
 
@@ -286,22 +240,23 @@ public class MainWindow {
             @Override
             public void handle(ActionEvent actionEvent) {
 
-                String selectedMovie = comboMovies.getSelectionModel().getSelectedItem().toString();
-                int seats = 200;
-                if(comboRoom.getSelectionModel().getSelectedItem().toString().equals("Room 2")){
-                    seats = 100;
-                }
+                String selectedMovieTitle = comboMovies.getSelectionModel().getSelectedItem().toString();
                 LocalDate datePart = datePicker.getValue();
                 LocalTime timePart = LocalTime.parse(timePicker.getText());
                 LocalDateTime dateTime = LocalDateTime.of(datePart, timePart);
 
-                if (comboRoom.getSelectionModel().getSelectedItem().toString().equals("Room 1")){
-                    moviesRoom1.add(checkData(selectedMovie, seats, dateTime, movieList));
-                }
-                else{
-                    moviesRoom2.add(checkData(selectedMovie, seats, dateTime, movieList));
+                Movie selectedMovie = validateShowing(selectedMovieTitle, dateTime, movieList);
+                if (selectedMovie == null){
+                    //TODO: error when adding showing
+                    return;
                 }
 
+                if (comboRoom.getSelectionModel().getSelectedItem().toString().equals("Room 1")){
+                    room1.addShowing(selectedMovie, dateTime);
+                }
+                else{
+                    room2.addShowing(selectedMovie, dateTime);
+                }
 
                 //get data
                 //add to list.
@@ -334,67 +289,92 @@ public class MainWindow {
             }
         });
 
-        room1.getSelectionModel().getSelectedItems().addListener(new ListChangeListener<Showing>() {
+        tableRoom1.getSelectionModel().getSelectedItems().addListener(new ListChangeListener<Showing>() {
             @Override
             public void onChanged(ListChangeListener.Change<? extends Showing> change) {
-                if (room1.getSelectionModel().getSelectedIndex() > -1) {
-                    if (botBar.isVisible()) {
-                        room.setText("1");
-                        start.setText(room1.getSelectionModel().getSelectedItem().getStart());
-                        end.setText(room1.getSelectionModel().getSelectedItem().getEnd());
-                        title.setText(room1.getSelectionModel().getSelectedItem().getMovieTitle());
-                    }
-                    //comboMovies
-                    //comboMovies.comboRoom, seats
+                if (tableRoom1.getSelectionModel().getSelectedIndex() > -1) {
+                    room.setText("1");
+                    start.setText(tableRoom1.getSelectionModel().getSelectedItem().getStart());
+                    end.setText(tableRoom1.getSelectionModel().getSelectedItem().getEnd());
+                    title.setText(tableRoom1.getSelectionModel().getSelectedItem().getMovieTitle());
+
+                    tableRoom2.getSelectionModel().clearSelection();
                 }
             }
         });
 
-        room2.getSelectionModel().getSelectedItems().addListener(new ListChangeListener<Showing>() {
+        tableRoom2.getSelectionModel().getSelectedItems().addListener(new ListChangeListener<Showing>() {
             @Override
             public void onChanged(ListChangeListener.Change<? extends Showing> change) {
-                if (room2.getSelectionModel().getSelectedIndex() > -1) {
-                    //botBar.setVisible(true);
+                if (tableRoom2.getSelectionModel().getSelectedIndex() > -1) {
                     room.setText("2");
-                    start.setText(room2.getSelectionModel().getSelectedItem().getStart().toString());
-                    end.setText(room2.getSelectionModel().getSelectedItem().getEnd().toString());
-                    title.setText(room2.getSelectionModel().getSelectedItem().getMovieTitle());
+                    start.setText(tableRoom2.getSelectionModel().getSelectedItem().getStart());
+                    end.setText(tableRoom2.getSelectionModel().getSelectedItem().getEnd());
+                    title.setText(tableRoom2.getSelectionModel().getSelectedItem().getMovieTitle());
+
+                    tableRoom1.getSelectionModel().clearSelection();
                 }
             }
         });
     }
 
-    private void addToRoom(TableView<Showing> room, ObservableList<Showing> showings) {
-        room.setItems(showings);
-        room.setMinSize(450, 200);
-        room.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+    private void addToRoom(TableView<Showing> table, Room room) {
+        table.setItems(room.getShowings());
+        table.setMinSize(450, 200);
+        table.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 
         TableColumn<Showing, String> startColumn = new TableColumn<>("Start Date");
         startColumn.setCellValueFactory(new PropertyValueFactory<>("start"));
-        room.getColumns().add(startColumn);
+        table.getColumns().add(startColumn);
         TableColumn<Showing, String> endColumn = new TableColumn<>("End Date");
         endColumn.setCellValueFactory(new PropertyValueFactory<>("end"));
-        room.getColumns().add(endColumn);
+        table.getColumns().add(endColumn);
         TableColumn<Showing, String> titleColumn = new TableColumn<>("Title");
         titleColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getMovieTitle()));
-        room.getColumns().add(titleColumn);
+        table.getColumns().add(titleColumn);
         TableColumn<Showing, String> seatsColumn = new TableColumn<>("Seats");
-        seatsColumn.setCellValueFactory(new PropertyValueFactory<>("seats"));
-        room.getColumns().add(seatsColumn);
+        seatsColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getAvailableSeats()));
+        table.getColumns().add(seatsColumn);
         TableColumn<Showing, String> priceColumn = new TableColumn<>("Price");
         priceColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getMoviePrice()));
-        room.getColumns().add(priceColumn);
+        table.getColumns().add(priceColumn);
     }
 
-    private Showing checkData(String selectedMovie, int seats, LocalDateTime dateTime, ObservableList<Movie> movieList){
-        if (selectedMovie != null || seats > 0 || dateTime != null){
+    private Movie validateShowing(String selectedMovie, LocalDateTime dateTime, ObservableList<Movie> movieList){
+        if (selectedMovie != null || dateTime != null){
             for (Movie movie : movieList){
                 if (movie.getTitle().equals(selectedMovie)){
-                    return new Showing(movie, seats, dateTime, movie.getEnd(dateTime));
+                    return movie;
                 }
             }
         }
         return null;
     }
 
+    private void purchaseTickets(TableView<Showing> table, int amount){
+        Showing selectedShowing = table.getSelectionModel().getSelectedItem();
+
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirmation");
+        alert.setHeaderText("Do you wish to purchase " + amount + " tickets?");
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.get() == ButtonType.OK) {
+            try {
+                selectedShowing.purchaseSeats(amount);
+            }
+            catch (IllegalArgumentException e) {
+                Alert alert1 = new Alert(Alert.AlertType.ERROR);
+                alert1.setTitle("ERROR");
+                alert1.setHeaderText(e.toString());
+                alert1.showAndWait();
+            }
+        } else {
+            Alert alert1 = new Alert(Alert.AlertType.INFORMATION);
+            alert1.setTitle("INFORMATION");
+            alert1.setHeaderText("Purchase cancelled by user");
+            alert1.showAndWait();
+        }
+        table.refresh();
+        table.getSelectionModel().clearSelection();
+    }
 }
