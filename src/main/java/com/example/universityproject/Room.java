@@ -18,15 +18,22 @@ public class Room {
         this.showings = FXCollections.observableArrayList();
     }
 
-    public void addListener(ListChangeListener<Showing> listener) {
-        this.showings.addListener(listener);
-    }
-
     public void addShowing(Movie movie, LocalDateTime start) {
         showings.add(new Showing(movie, totalSeats, start));
     }
 
+    public int getId(){return id;}
+
     public ObservableList<Showing> getShowings (){
         return this.showings;
+    }
+
+    public int getTotalSeats(){
+        return totalSeats;
+    }
+
+    @Override
+    public String toString(){
+        return "Room " + id;
     }
 }

@@ -1,11 +1,8 @@
 package com.example.universityproject;
 
 import javafx.beans.property.SimpleStringProperty;
-import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -108,21 +105,14 @@ public class MainWindow {
         Label movieSeats = new Label("Nº of seats");
         movieSeats.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
         //column 2
-        ComboBox comboMovies = new ComboBox();
-        for (Movie movie : movieList) {
-            comboMovies.getItems().add(movie.getTitle());
-        }
-        ComboBox comboRoom = new ComboBox();
-        comboRoom.getItems().add("Room 1");
-        comboRoom.getItems().add("Room 2");
+        ComboBox<Movie> comboMovies = new ComboBox<>();
+        comboMovies.setItems(movieList);
+
+        ComboBox<Room> comboRoom = new ComboBox<>();
+        comboRoom.getItems().add(room1);
+        comboRoom.getItems().add(room2);
         Label seats = new Label("");
-        comboRoom.setOnAction((event) -> {
-            if (comboRoom.getSelectionModel().getSelectedIndex() == 1) {
-                seats.setText("100");
-            } else {
-                seats.setText("200");
-            }
-        });
+        comboRoom.setOnAction(event -> seats.setText(String.valueOf(comboRoom.getSelectionModel().getSelectedItem().getTotalSeats())));
 
         //column 3
         Label movieStart = new Label("Start");
@@ -184,137 +174,110 @@ public class MainWindow {
         stage.setScene(new Scene(myGrid));
         stage.show();
 
-        purchaseTickets.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent actionEvent) {
-                manageBar.setVisible(false);
-                botBar.setVisible(true);
-                purchaseTickets.setVisible(false);
-                manageShowings.setVisible(true);
-                purchaseTxt.setText("Purchase Tickets");
-            }
+        purchaseTickets.setOnAction(actionEvent -> {
+            manageBar.setVisible(false);
+            botBar.setVisible(true);
+            purchaseTickets.setVisible(false);
+            manageShowings.setVisible(true);
+            purchaseTxt.setText("Purchase Tickets");
         });
-        manageShowings.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent actionEvent) {
-                manageBar.setVisible(true);
-                botBar.setVisible(false);
-                purchaseTickets.setVisible(true);//menuitems
-                manageShowings.setVisible(false);
-                purchaseTxt.setText("Manage Showings");
-            }
+        manageShowings.setOnAction(actionEvent -> {
+            manageBar.setVisible(true);
+            botBar.setVisible(false);
+            purchaseTickets.setVisible(true);//menuitems
+            manageShowings.setVisible(false);
+            purchaseTxt.setText("Manage Showings");
         });
 
-        Logout.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent actionEvent) {
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setTitle("Warning");
-                alert.setHeaderText("Are you sure you wish to logout?");
-                Optional<ButtonType> result = alert.showAndWait();
-                if (result.get() == ButtonType.OK) {
-                    new LoginScreen(db);
-                    stage.close();
-                }
+        Logout.setOnAction(actionEvent -> {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Warning");
+            alert.setHeaderText("Are you sure you wish to logout?");
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() == ButtonType.OK) {
+                new LoginScreen(db);
+                stage.close();
             }
         });
 
-        purchaseBtn.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent actionEvent) {
-                if (seatSpinner.getValue() < 0 || name.getText().isEmpty()) {
-                    return;
-                }
-
-                if (tableRoom1.getSelectionModel().getSelectedIndex() != -1) {
-                    purchaseTickets(tableRoom1, seatSpinner.getValue());
-
-                } else if (tableRoom2.getSelectionModel().getSelectedIndex() != -1) {
-                    purchaseTickets(tableRoom2, seatSpinner.getValue());
-                }
-                //if no showing is selected..
+        purchaseBtn.setOnAction(actionEvent -> {
+            if (seatSpinner.getValue() < 0 || name.getText().isEmpty()) {
+                return;
             }
+
+            if (tableRoom1.getSelectionModel().getSelectedIndex() != -1) {
+                purchaseTickets(tableRoom1, seatSpinner.getValue());
+
+            } else if (tableRoom2.getSelectionModel().getSelectedIndex() != -1) {
+                purchaseTickets(tableRoom2, seatSpinner.getValue());
+            }
+            //if no showing is selected..
         });
 
-        addBtn.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent actionEvent) {
+        addBtn.setOnAction(actionEvent -> {
 
-                String selectedMovieTitle = comboMovies.getSelectionModel().getSelectedItem().toString();
-                LocalDate datePart = datePicker.getValue();
-                LocalTime timePart = LocalTime.parse(timePicker.getText());
-                LocalDateTime dateTime = LocalDateTime.of(datePart, timePart);
+            String selectedMovieTitle = comboMovies.getSelectionModel().getSelectedItem().toString();
+            LocalDate datePart = datePicker.getValue();
+            LocalTime timePart = LocalTime.parse(timePicker.getText());
+            LocalDateTime dateTime = LocalDateTime.of(datePart, timePart);
 
-                Movie selectedMovie = validateShowing(selectedMovieTitle, dateTime, movieList);
-                if (selectedMovie == null){
-                    //TODO: error when adding showing
-                    return;
-                }
-
-                if (comboRoom.getSelectionModel().getSelectedItem().toString().equals("Room 1")){
-                    room1.addShowing(selectedMovie, dateTime);
-                }
-                else{
-                    room2.addShowing(selectedMovie, dateTime);
-                }
-
-                //get data
-                //add to list.
+            Movie selectedMovie = validateShowing(selectedMovieTitle, dateTime, movieList);
+            if (selectedMovie == null){
+                //TODO: error when adding showing
+                return;
             }
+
+            if (comboRoom.getSelectionModel().getSelectedItem().toString().equals("Room 1")){
+                room1.addShowing(selectedMovie, dateTime);
+            }
+            else{
+                room2.addShowing(selectedMovie, dateTime);
+            }
+
+            //get data
+            //add to list.
         });
 
-        clearBtn.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent actionEvent) {
-                room.setText("");
-                start.setText("");
-                end.setText("");
-                title.setText("");
-                seatSpinner.getEditor().clear();
-                name.clear();
-            }
+        clearBtn.setOnAction(actionEvent -> {
+            room.setText("");
+            start.setText("");
+            end.setText("");
+            title.setText("");
+            seatSpinner.getEditor().clear();
+            name.clear();
         });
 
 
-        clearButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent actionEvent) {
-                comboMovies.getSelectionModel().clearSelection();
-                comboRoom.getSelectionModel().clearSelection();
-                seats.setText("");
-                datePicker.getEditor().clear();
-                endDate.setText("");
-                timePicker.clear();
-                price.setText("");
-            }
+        clearButton.setOnAction(actionEvent -> {
+            comboMovies.getSelectionModel().clearSelection();
+            comboRoom.getSelectionModel().clearSelection();
+            seats.setText("");
+            datePicker.getEditor().clear();
+            endDate.setText("");
+            timePicker.clear();
+            price.setText("");
         });
 
-        tableRoom1.getSelectionModel().getSelectedItems().addListener(new ListChangeListener<Showing>() {
-            @Override
-            public void onChanged(ListChangeListener.Change<? extends Showing> change) {
-                if (tableRoom1.getSelectionModel().getSelectedIndex() > -1) {
-                    room.setText("1");
-                    start.setText(tableRoom1.getSelectionModel().getSelectedItem().getStart());
-                    end.setText(tableRoom1.getSelectionModel().getSelectedItem().getEnd());
-                    title.setText(tableRoom1.getSelectionModel().getSelectedItem().getMovieTitle());
+        tableRoom1.getSelectionModel().getSelectedItems().addListener((ListChangeListener<Showing>) change -> {
+            if (tableRoom1.getSelectionModel().getSelectedIndex() == -1) {return; }
 
-                    tableRoom2.getSelectionModel().clearSelection();
-                }
-            }
+            room.setText(String.valueOf(room1.getId()));
+            start.setText(tableRoom1.getSelectionModel().getSelectedItem().getStart());
+            end.setText(tableRoom1.getSelectionModel().getSelectedItem().getEnd());
+            title.setText(tableRoom1.getSelectionModel().getSelectedItem().getMovieTitle());
+
+            tableRoom2.getSelectionModel().clearSelection();
         });
 
-        tableRoom2.getSelectionModel().getSelectedItems().addListener(new ListChangeListener<Showing>() {
-            @Override
-            public void onChanged(ListChangeListener.Change<? extends Showing> change) {
-                if (tableRoom2.getSelectionModel().getSelectedIndex() > -1) {
-                    room.setText("2");
-                    start.setText(tableRoom2.getSelectionModel().getSelectedItem().getStart());
-                    end.setText(tableRoom2.getSelectionModel().getSelectedItem().getEnd());
-                    title.setText(tableRoom2.getSelectionModel().getSelectedItem().getMovieTitle());
+        tableRoom2.getSelectionModel().getSelectedItems().addListener((ListChangeListener<Showing>) change -> {
+            if (tableRoom2.getSelectionModel().getSelectedIndex() == -1) {return;}
 
-                    tableRoom1.getSelectionModel().clearSelection();
-                }
-            }
+            room.setText(String.valueOf(room2.getId()));
+            start.setText(tableRoom2.getSelectionModel().getSelectedItem().getStart());
+            end.setText(tableRoom2.getSelectionModel().getSelectedItem().getEnd());
+            title.setText(tableRoom2.getSelectionModel().getSelectedItem().getMovieTitle());
+
+            tableRoom1.getSelectionModel().clearSelection();
         });
     }
 
@@ -358,17 +321,19 @@ public class MainWindow {
         alert.setTitle("Confirmation");
         alert.setHeaderText("Do you wish to purchase " + amount + " tickets?");
         Optional<ButtonType> result = alert.showAndWait();
-        if (result.get() == ButtonType.OK) {
+        if (result.isPresent() && result.get() == ButtonType.OK) {
             try {
                 selectedShowing.purchaseSeats(amount);
             }
             catch (IllegalArgumentException e) {
                 Alert alert1 = new Alert(Alert.AlertType.ERROR);
                 alert1.setTitle("ERROR");
-                alert1.setHeaderText(e.toString());
+                alert1.setHeaderText(e.getMessage());
                 alert1.showAndWait();
             }
-        } else {
+        }
+        else
+        {
             Alert alert1 = new Alert(Alert.AlertType.INFORMATION);
             alert1.setTitle("INFORMATION");
             alert1.setHeaderText("Purchase cancelled by user");
