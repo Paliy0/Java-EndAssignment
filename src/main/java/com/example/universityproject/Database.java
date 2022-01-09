@@ -44,6 +44,10 @@ public class Database {
 
     public ObservableList<Movie> getMovieList() { return movieList; }
 
+    public void addMovie(Movie movie){
+        movieList.add(movie);
+    }
+
     boolean PasswordValidation(String password) {
         boolean charPresent = false;
         boolean numPresent = false;

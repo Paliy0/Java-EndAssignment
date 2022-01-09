@@ -1,5 +1,6 @@
 package com.example.universityproject;
 
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -16,6 +17,7 @@ import javafx.stage.Stage;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.EventListenerProxy;
 import java.util.Optional;
 
 public class MainWindow {
@@ -37,7 +39,9 @@ public class MainWindow {
         purchaseTickets.setVisible(false);
         MenuItem manageShowings = new MenuItem("Manage showings");
         manageShowings.setVisible(currentUser.isAdmin());
-        menuAdmin.getItems().addAll(purchaseTickets, manageShowings);
+        MenuItem manageMovies = new MenuItem("Manage movies");
+        manageMovies.setVisible(currentUser.isAdmin());
+        menuAdmin.getItems().addAll(purchaseTickets, manageShowings, manageMovies);
         //add manage movies
         Menu menuHelp = new Menu("Help");
         Menu menuLogout = new Menu("Logout");
@@ -50,8 +54,8 @@ public class MainWindow {
             userType = "admin";
         }
 
-        Text purchaseTxt = new Text("Purchase Tickets");
-        purchaseTxt.setStyle("-fx-font-size: 18px;");
+        Text Title = new Text("Purchase Tickets");
+        Title.setStyle("-fx-font-size: 18px;");
 
         Label userLbl = new Label(String.format("Logged in as: %s (%s)", currentUser.getUserName(), userType));
 
@@ -123,10 +127,14 @@ public class MainWindow {
         moviePrice.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
         //column 4
         DatePicker datePicker = new DatePicker();
-        Label endDate = new Label("endDate");
-        Label price = new Label("Price");
+        Label endDate = new Label("");
+        Label price = new Label("");
+        comboMovies.setOnAction(actionEvent -> {
+            price.setText(String.valueOf(comboMovies.getSelectionModel().getSelectedItem().getPrice()));
+        });
         //column 5
         TextField timePicker = new TextField();
+        //endDate.setText();
         //column 6
         Button addBtn = new Button("Add showing");
         Button clearButton = new Button("Clear");
@@ -166,27 +174,79 @@ public class MainWindow {
         col6.setPrefWidth(350);
         manageBar.getChildren().addAll(col1, col2, col3, col4, col5, col6);
 
+        HBox movieControls = new HBox(10);
+        //column 1
+        Label movieTitleLbl = new Label("Title");
+        movieTitleLbl.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
+        Label moviePriceLbl = new Label("Price");
+        moviePriceLbl.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
+        Label movieDurationLbl = new Label("Duration");
+        movieDurationLbl.setFont(Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, 12));
+        VBox first = new VBox(20, movieTitleLbl, moviePriceLbl, movieDurationLbl);
+        //column 2
+        TextField movieTitleField = new TextField();
+        TextField moviePriceField = new TextField();
+        TextField movieDurationField = new TextField();
+        VBox second = new VBox(20, movieTitleField, moviePriceField, movieDurationField);
+        //column3
+        Button addMovieBtn = new Button("Add Movie");
+        Button clear = new Button("Clear");
+        VBox third = new VBox(10, addMovieBtn, clear);
+
+        movieControls.getChildren().addAll(first, second, third);
+        TableView<Movie> movieTableView = new TableView<>();
+        addToMovie(movieTableView, db);
+        movieTableView.setVisible(false);
+        myGrid.add(movieTableView, 0, 4);
+
+        myGrid.add(movieControls, 0, 6);
+        movieControls.setVisible(false);
         myGrid.add(manageBar, 0, 6);
         manageBar.setVisible(false);
         myGrid.add(botBar, 0, 6);
         botBar.setVisible(true);
-        myGrid.add(purchaseTxt, 0, 2);
+        myGrid.add(Title, 0, 2);
         stage.setScene(new Scene(myGrid));
         stage.show();
 
+        tableSelection(tableRoom1, tableRoom2, room1, room, start, end, title); //calls method to add selection listener
+        tableSelection(tableRoom2, tableRoom1, room2, room, start, end, title);
+
         purchaseTickets.setOnAction(actionEvent -> {
-            manageBar.setVisible(false);
-            botBar.setVisible(true);
             purchaseTickets.setVisible(false);
+            manageBar.setVisible(false);
+            movieTableView.setVisible(false);
+            tableRoom1.setVisible(true);
+            tableRoom2.setVisible(true);
+            botBar.setVisible(true);
+            movieControls.setVisible(true);
             manageShowings.setVisible(true);
-            purchaseTxt.setText("Purchase Tickets");
+            Title.setText("Purchase Tickets");
         });
+
         manageShowings.setOnAction(actionEvent -> {
-            manageBar.setVisible(true);
-            botBar.setVisible(false);
-            purchaseTickets.setVisible(true);//menuitems
             manageShowings.setVisible(false);
-            purchaseTxt.setText("Manage Showings");
+            movieControls.setVisible(false);
+            movieTableView.setVisible(false);
+            botBar.setVisible(false);
+            manageBar.setVisible(true);
+            tableRoom1.setVisible(true);
+            tableRoom2.setVisible(true);
+            purchaseTickets.setVisible(true);
+            Title.setText("Manage Showings");
+        });
+
+        manageMovies.setOnAction(actionEvent -> {
+            manageMovies.setVisible(false);
+            manageBar.setVisible(false);
+            botBar.setVisible(false);
+            tableRoom1.setVisible(false);
+            tableRoom2.setVisible(false);
+            movieControls.setVisible(true);
+            purchaseTickets.setVisible(true);
+            manageShowings.setVisible(true);
+            movieTableView.setVisible(true);
+            Title.setText("Manage Movies");
         });
 
         Logout.setOnAction(actionEvent -> {
@@ -217,13 +277,16 @@ public class MainWindow {
         addBtn.setOnAction(actionEvent -> {
 
             String selectedMovieTitle = comboMovies.getSelectionModel().getSelectedItem().toString();
-            LocalDate datePart = datePicker.getValue();
-            LocalTime timePart = LocalTime.parse(timePicker.getText());
-            LocalDateTime dateTime = LocalDateTime.of(datePart, timePart);
+
+            LocalDateTime dateTime  = dateConverter(datePicker.getValue(), timePicker.getText());
 
             Movie selectedMovie = validateShowing(selectedMovieTitle, dateTime, movieList);
             if (selectedMovie == null){
                 //TODO: error when adding showing
+                Alert alert1 = new Alert(Alert.AlertType.WARNING);
+                alert1.setTitle("WARNING");
+                alert1.setHeaderText("Movie not selected");
+                alert1.showAndWait();
                 return;
             }
 
@@ -233,9 +296,27 @@ public class MainWindow {
             else{
                 room2.addShowing(selectedMovie, dateTime);
             }
+        });
 
-            //get data
-            //add to list.
+        addMovieBtn.setOnAction(actionEvent -> {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Confirmation");
+            alert.setHeaderText("Do you wish to add" + movieTitleField.getText() + "to the list?");
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() == ButtonType.OK) {
+                try {
+                    Movie newMovie = new Movie(movieTitleField.getText(), Integer.parseInt(movieDurationField.getText()), Double.parseDouble(moviePriceField.getText()));
+                    db.addMovie(newMovie);
+                }
+                catch (IllegalArgumentException e) {
+                    Alert alert1 = new Alert(Alert.AlertType.ERROR);
+                    alert1.setTitle("ERROR");
+                    alert1.setHeaderText("Invalid data type, please try again");
+                    alert1.showAndWait();
+                }
+            }
+            movieTableView.refresh();
+            movieTableView.getSelectionModel().clearSelection();
         });
 
         clearBtn.setOnAction(actionEvent -> {
@@ -247,7 +328,6 @@ public class MainWindow {
             name.clear();
         });
 
-
         clearButton.setOnAction(actionEvent -> {
             comboMovies.getSelectionModel().clearSelection();
             comboRoom.getSelectionModel().clearSelection();
@@ -258,26 +338,10 @@ public class MainWindow {
             price.setText("");
         });
 
-        tableRoom1.getSelectionModel().getSelectedItems().addListener((ListChangeListener<Showing>) change -> {
-            if (tableRoom1.getSelectionModel().getSelectedIndex() == -1) {return; }
-
-            room.setText(String.valueOf(room1.getId()));
-            start.setText(tableRoom1.getSelectionModel().getSelectedItem().getStart());
-            end.setText(tableRoom1.getSelectionModel().getSelectedItem().getEnd());
-            title.setText(tableRoom1.getSelectionModel().getSelectedItem().getMovieTitle());
-
-            tableRoom2.getSelectionModel().clearSelection();
-        });
-
-        tableRoom2.getSelectionModel().getSelectedItems().addListener((ListChangeListener<Showing>) change -> {
-            if (tableRoom2.getSelectionModel().getSelectedIndex() == -1) {return;}
-
-            room.setText(String.valueOf(room2.getId()));
-            start.setText(tableRoom2.getSelectionModel().getSelectedItem().getStart());
-            end.setText(tableRoom2.getSelectionModel().getSelectedItem().getEnd());
-            title.setText(tableRoom2.getSelectionModel().getSelectedItem().getMovieTitle());
-
-            tableRoom1.getSelectionModel().clearSelection();
+        clear.setOnAction(actionEvent -> {
+            movieTitleField.clear();
+            moviePriceField.clear();
+            movieDurationField.clear();
         });
     }
 
@@ -301,6 +365,22 @@ public class MainWindow {
         TableColumn<Showing, String> priceColumn = new TableColumn<>("Price");
         priceColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getMoviePrice()));
         table.getColumns().add(priceColumn);
+    }
+
+    private void addToMovie(TableView<Movie> table, Database db) {
+        table.setItems(db.getMovieList());
+        table.setMinSize(50, 200);
+        table.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+
+        TableColumn<Movie, String> titleColumn = new TableColumn<>("Title");
+        titleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
+        table.getColumns().add(titleColumn);
+        TableColumn<Movie, String> priceColumn = new TableColumn<>("Price");
+        priceColumn.setCellValueFactory(new PropertyValueFactory<>("price"));
+        table.getColumns().add(priceColumn);
+        TableColumn<Movie, String> durationColumn = new TableColumn<>("Duration");
+        durationColumn.setCellValueFactory(new PropertyValueFactory<>("duration"));
+        table.getColumns().add(durationColumn);
     }
 
     private Movie validateShowing(String selectedMovie, LocalDateTime dateTime, ObservableList<Movie> movieList){
@@ -341,5 +421,23 @@ public class MainWindow {
         }
         table.refresh();
         table.getSelectionModel().clearSelection();
+    }
+
+    private LocalDateTime dateConverter(LocalDate date, String time){
+        return LocalDateTime.of(date, LocalTime.parse(time));
+    }
+
+    private void tableSelection(TableView<Showing> mainTable, TableView<Showing> otherTable, Room mainRoom, Label roomLbl, Label startLbl, Label endLbl, Label titleLbl){
+        mainTable.getSelectionModel().getSelectedItems().addListener((ListChangeListener<Showing>) change -> {
+            if (mainTable.getSelectionModel().getSelectedIndex() == -1) {
+                return;
+            }
+            roomLbl.setText(String.valueOf(mainRoom.getId()));
+            startLbl.setText(mainTable.getSelectionModel().getSelectedItem().getStart());
+            endLbl.setText(mainTable.getSelectionModel().getSelectedItem().getEnd());
+            titleLbl.setText(mainTable.getSelectionModel().getSelectedItem().getMovieTitle());
+
+            otherTable.getSelectionModel().clearSelection();
+        });
     }
 }
